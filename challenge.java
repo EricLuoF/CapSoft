@@ -8,63 +8,53 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.Queue;
 
-public class challenge {
+public class challenge{
 
-    public static void main(String[] args)throws FileNotFoundException{
-        boolean debug = false;
+    public static void main(String[] args)throws IOException, InterruptedException{
+        //Sets up terminal for raw input
+        String[] cmd = {"/bin/sh", "-c", "stty raw </dev/tty"};
+        Runtime.getRuntime().exec(cmd).waitFor();
 
-        //User testing from file
-        //Reads in from file for testing
-        if(debug){
-            Scanner scanfile = new Scanner(System.in);
-            System.out.println("Enter Input File Location:");
-            String filename = scanfile.nextLine();
-            scanfile.close();
-            //Clears the terminal screen
-            System.out.print("\033[H\033[2J");
-            System.out.flush();
-        }
-        File in = new File(filename);
-        Scanner scan = new Scanner(in);
-        scan.useDelimiter("");
+        //Reverts terminal to normal with a shutdown hook
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+            public void run(){
+                String[] cmd2 = {"/bin/sh", "-c", "stty cooked </dev/tty"};
+                try{
+                Runtime.getRuntime().exec(cmd2).waitFor();
+                }
+                catch(Exception e){}
+            }   
+        });
 
-        challenge test = new challenge();
-
+        challenge t = new challenge();
         //C = 01000011
         @SuppressWarnings("unchecked")
-        Queue<Character> queue = test.setup(scan);
+        Queue<Character> queue = t.setup();
 
-        //Runs as long as the file has more data within it
-        while(scan.hasNext()){
-            
-            //Queue of 8 bits that is constantly checking to see if its 'C', else it bit shifts to the right by 1.
-            if(test.bitCheck(queue)){
-                //checkFlag is called after a 'C' is detected, and the following letters are checked to see if CAPTIVATION is written
-                if (test.checkFlag(scan)){
-                    //If there is indeed the CAPTIVATION flag, then print the next 100 characters, then go back to polling for 'C'
-                    test.printHundred(scan);
+        while(true){
+            //Checks if the letters in the queue make 'C'
+            if(t.checkC(queue)){
+                //'C' was found, check for APTIVATION
+                if(t.checkFlag()){
+                    t.printHundred();
                 }
             }
-            //Shifts the queue to the right by 1 bit
-            if(scan.hasNext()) {
-                queue.remove();
-                queue.add(scan.next().charAt(0));
-            }
-
+            queue.remove();
+            queue.add((char)System.in.read());
         }
-
     }
+
     //Setup, populates queue which will be running FIFO to check for the char 'C'
-    Queue setup(Scanner scan){
+    Queue setup() throws IOException{
         Queue<Character> setup = new LinkedList<>();
         for (int i = 0; i < 8; i++) {
-            setup.add(scan.next().charAt(0));
+            setup.add((char)System.in.read());
         }
         return setup;
     }
 
     //Checks to see if these 8 bits are equal to C
-    boolean bitCheck(Queue<Character> queue){
+    boolean checkC(Queue<Character> queue) throws IOException{
         Queue<Character> local = new LinkedList<>(queue);
         String binary = "";
         for (int i = 0; i < 8; i++) {
@@ -74,13 +64,14 @@ public class challenge {
         char letter = (char) decimal;
 
         return (letter == 'C');
-    }
+    }  
+
     //Reads in the next 8 bits, and converts to a char
-    char getLetter(Scanner scan){
+    char getLetter() throws IOException{
 
         String binary = "";
         for (int i = 0; i < 8; i++) {
-            binary += scan.next().charAt(0);
+            binary += (char)System.in.read();
         }
         int decimal = Integer.parseInt(binary,2);
         char letter = (char) decimal;
@@ -88,21 +79,22 @@ public class challenge {
     }
 
     //Checks to see if the rest of the preamble string is correct
-    boolean checkFlag(Scanner scan){
+    boolean checkFlag() throws IOException{
+
         char[] correct = {'A','P','T','I','V','A','T','I','O','N'};
         for (int i = 0; i < 10; i++) {
-            if(getLetter(scan) != correct[i]){
+            if(getLetter() != correct[i]){
                 return false;
             }
         }
         return true;
-    }
+    }  
 
     //Prints the next 100 characters
-    void printHundred(Scanner scan){
+    void printHundred() throws IOException{
         String output = "";
         for (int i = 0; i < 100; i++) {
-            output += getLetter(scan);
+            output += getLetter();
         }
         System.out.println(output);
     }
