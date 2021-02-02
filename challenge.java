@@ -14,18 +14,24 @@ public class challenge {
         boolean debug = true;
 
         //Reads in from file for testing
-        File in = new File("C:\\Users\\Eric\\Desktop\\Code\\captivationchallengejava\\input.txt");
+        Scanner scann = new Scanner(System.in);
+        System.out.println("Enter Input File Location:");
+        String filename = scann.nextLine();
+        scann.close();
+        File in = new File(filename);
+        //File in = new File("C:\\Users\\Eric\\Desktop\\Code\\captivationchallengejava\\input.txt");
         Scanner scan = new Scanner(in);
         scan.useDelimiter("");
 
         //Actual scanner, should both work
         //Scanner scan = new Scanner(System.in);
-
+        //scan.useDelimiter("");
 
         challenge test = new challenge();
         char check;
 
         //C = 01000011
+        @SuppressWarnings("unchecked")
         Queue<Character> queue = test.setup(scan);
 
         //since in theory this is a never ending stream
